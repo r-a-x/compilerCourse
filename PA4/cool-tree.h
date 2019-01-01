@@ -16,6 +16,7 @@
 // define simple phylum - Program
 typedef class Program_class *Program;
 class method_class;
+class attr_class;
 
 class Program_class : public tree_node {
 public:
@@ -149,10 +150,14 @@ public:
    bool isCycle();
    bool checkUnique();
    bool checkParentExist();
-   bool checkMethod();
    bool checkMethodExprValid(Feature method);
    bool checkMethodSignatureValid(Feature method);
    bool methodReturnTypeValid(method_class* method);
+   bool checkAttr(attr_class* attr);
+   bool checkFeature();
+   bool isMethodArgValid(method_class* method);
+   bool methodArgUnique(method_class* method);
+   bool checkMethod(method_class* method);
    // void checkParentExist(ClassTable classtable);
 
 #ifdef Program_SHARED_EXTRAS

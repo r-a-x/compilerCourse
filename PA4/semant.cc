@@ -255,10 +255,15 @@ ostream& ClassTable::semant_error()
 
 bool program_class::checkParentExist() {
   for( int i = classes->first(); classes->more(i); i = classes->next(i) ){
-    cout << "The parent of the class is " <<endl;
-    cout << classes->nth(i)->GetParent() <<endl;
+    if(semant_debug){
+      cout << "The parent of the class is " <<endl;
+      cout << classes->nth(i)->GetParent() <<endl;
+    }
+
     if( tree_classes.find( classes->nth(i)->GetParent() )  == tree_classes.end() ){
-      cout << "Parent of this class does not exist" <<  endl;
+      if(semant_debug){
+        cout << "Parent of this class does not exist" <<  endl;
+      }
       return false;
     }
    }
@@ -275,7 +280,8 @@ bool program_class::checkParentExist() {
        tree_classes[ classes->nth(i)->GetName() ] = classes->nth(i);
      }else{
        // mark classtable as the code contains duplicate class
-       cout << "Oops there is duplicate class over here" <<endl;
+       if (semant_debug)
+        cout << "Oops there is duplicate class over here" <<endl;
        return false;
        // class is already present in the declaration.
        // Raise an error
@@ -289,10 +295,12 @@ bool program_class::checkParentExist() {
 //
 
 Class_ program_class::getParent(Class_ child) {
-  cout << "In the getParent class for" << child->GetName() << endl;
+  if(semant_debug)
+    cout << "In the getParent class for" << child->GetName() << endl;
   if (child->GetName() == Object)
     return child;
-  cout << "The value of the GetParent is " << child->GetParent() <<endl;
+  if(semant_debug)
+    cout << "The value of the GetParent is " << child->GetParent() <<endl;
   if (child->GetParent() == child->GetName()) {
     return child;
   }
@@ -318,14 +326,18 @@ Class_ program_class::getParent(Class_ child) {
 
 bool program_class::isCycle() {
   for( int i = classes->first(); classes->more(i); i = classes->next(i) ){
-    cout << "looping over the class" << classes->nth(i)->GetName() << endl;
+
+    if (semant_debug)
+      cout << "looping over the class" << classes->nth(i)->GetName() << endl;
     // if (  classes->nth(i)->GetParent() == classes->nth(i)->GetName()){
     //   cout << "Fuck there is an error" <<endl;
     //   return true;
     // }
-    cout <<  getParent(classes->nth(i))->GetName() <<endl;
+    if (semant_debug)
+      cout <<  getParent(classes->nth(i))->GetName() <<endl;
     if ( getParent(classes->nth(i))->GetName() == classes->nth(i)->GetName() ){
-      cout << "Fuck there is cycle in the classes" <<endl;
+      if(semant_debug)
+        cout << "Fuck there is cycle in the classes" <<endl;
       return true;
     }
     else{
@@ -351,7 +363,7 @@ bool program_class::methodReturnTypeValid(method_class* method){
 bool program_class::isMethodArgValid(method_class* method){
   Formals formals = method->getFormals();
   for(int i = formals->first(); formals->more(i); i = formals->next(i)){
-    formal_class  formal = formals->nth(i);
+    formal_class* formal = (formal_class*)formals->nth(i);
     if ( tree_classes.find(formal->GetTypeDecl()) == tree_classes.end() )
       return false;
   }
@@ -362,7 +374,7 @@ bool program_class::methodArgUnique(method_class* method){
   std::map<Symbol,bool> argVarMap;
   Formals formals = method->getFormals();
   for(int i = formals->first(); formals->more(i); i = formals->next(i)){
-    formal_class  formal = formals->nth(i);
+    formal_class* formal = (formal_class*)formals->nth(i);
     if ( argVarMap.find( formal->GetName())  != argVarMap.end() )
       return false;
     argVarMap[formal->GetName()] = 1;
@@ -383,10 +395,11 @@ bool program_class::checkMethodExprValid(Feature method){
 
 
 bool program_class::checkMethod(method_class* method){
-  methodReturnTypeValid(method);
+  cout << methodReturnTypeValid(method) <<endl;
+  cout << methodArgUnique(method) <<endl;
   // checkMethodSignatureValid(method);
   // checkMethodExprValid(method);
-  isMethodArgValid(method);
+  cout << isMethodArgValid(method) <<endl;
 }
 
 bool program_class::checkAttr(attr_class* attr){
@@ -395,7 +408,10 @@ bool program_class::checkAttr(attr_class* attr){
 
 bool program_class::checkFeature(){
   for( int i = classes->first(); classes->more(i); i = classes->next(i) ){
-    cout << "looping over the class" << classes->nth(i)->GetName() << endl;
+
+    if (semant_debug)
+      cout << "looping over the class" << classes->nth(i)->GetName() << endl;
+
     Features features = classes->nth(i)->GetFeatures();
     for( int i = features->first(); features->more(i); i = features->next(i) ){
       Feature feature = features->nth(i);
@@ -406,7 +422,6 @@ bool program_class::checkFeature(){
       }
     }
   }
-
 }
 
 void program_class::semant()
@@ -427,7 +442,6 @@ void program_class::semant()
       isCycle();
 
 
-    cout << "checking the method " <<endl;
     checkFeature();
 
     // for(int i = features->first(); features->more(i); i = features->next(i))
