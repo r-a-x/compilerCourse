@@ -359,6 +359,50 @@ bool program_class::methodReturnTypeValid(method_class* method){
   return tree_classes.find(method->getReturnType()) != tree_classes.end();
 }
 
+// Can there be multilpe body in the body, lets see
+// Symbol will be the return type of the object and I have to make sure that certain values
+Symbol program_class::setTypeInLet(){
+
+}
+
+Symbol program_class::setTypeInCase(){
+
+}
+
+// Symbol program_class::
+
+Symbol program_class::setTypeInBlock(body_class* body, SymbolTable *symbolTable){
+  symbolTable->enterscope();
+  Symbol returnValue;
+  Expressions expressions = body.getExpressions();
+  for( int i = expressions->first(); expressions->more(i); expressions->next(i) ){
+    Expression_class * expression = (Expression_class*) expressions->nth(i);
+
+  }
+
+  symbolTable->exitscope();
+  return
+}
+
+void program_class::setTypeOfMethod(method_class* method,SymbolTable *symbolTable){
+// SymbolTable<char *,int> *map = new SymbolTable<char *, int>();
+  symbolTable->enterscope();
+
+  Formals formals = method->getFormals();
+  for ( int i = formals->first(); formals->more(i); i = formals->next(i) ){
+    formal_class* formal = (formal_class*)formals->nth(i);
+    if( symbolTable->probe(formal->GetName()) != NULL ){
+      cout << "There is an error, the value of the formal parameter is already defined" <<endl;
+    }
+    symbolTable->addid(formal->GetName(), formal->GetTypeDecl());
+  }
+
+// set the method type in the expression of the
+  Expression expression = method.getExpression();
+
+
+  symbolTable->exitscope();
+}
 
 bool program_class::isMethodArgValid(method_class* method){
   Formals formals = method->getFormals();
@@ -404,6 +448,10 @@ bool program_class::checkMethod(method_class* method){
 
 bool program_class::checkAttr(attr_class* attr){
   return false;
+}
+
+void program_class::storeDeclarations(){
+
 }
 
 bool program_class::checkFeature(){

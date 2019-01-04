@@ -56,6 +56,7 @@ public:
    virtual Feature copy_Feature() = 0;
    bool isMethod(){ return method;}
    // virtual Symbol getReturnType() = 0;
+   virtual getExpression() = 0;
 #ifdef Feature_EXTRAS
    Feature_EXTRAS
 #endif
@@ -218,6 +219,7 @@ public:
    Formals getFormals() {return formals;}
    void dump(ostream& stream, int n);
    Symbol GetName(){ return name;}
+   Expression getExpression(){ return expr;}
 
 #ifdef Feature_SHARED_EXTRAS
    Feature_SHARED_EXTRAS
@@ -243,6 +245,7 @@ public:
    }
    Feature copy_Feature();
    void dump(ostream& stream, int n);
+   Expression getExpression() { return init;}
    // virtual Symbol getReturnType() = 0 ;
 
 #ifdef Feature_SHARED_EXTRAS
@@ -307,10 +310,12 @@ class assign_class : public Expression_class {
 protected:
    Symbol name;
    Expression expr;
+   String type;
 public:
    assign_class(Symbol a1, Expression a2) {
       name = a1;
       expr = a2;
+      type = "assign";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -331,12 +336,14 @@ protected:
    Symbol type_name;
    Symbol name;
    Expressions actual;
+   String type:
 public:
    static_dispatch_class(Expression a1, Symbol a2, Symbol a3, Expressions a4) {
       expr = a1;
       type_name = a2;
       name = a3;
       actual = a4;
+      type = "static_dispatch";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -356,11 +363,13 @@ protected:
    Expression expr;
    Symbol name;
    Expressions actual;
+   String type:
 public:
    dispatch_class(Expression a1, Symbol a2, Expressions a3) {
       expr = a1;
       name = a2;
       actual = a3;
+      type = "dispatch";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -380,11 +389,13 @@ protected:
    Expression pred;
    Expression then_exp;
    Expression else_exp;
+   String type;
 public:
    cond_class(Expression a1, Expression a2, Expression a3) {
       pred = a1;
       then_exp = a2;
       else_exp = a3;
+      type = "cond";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -403,10 +414,12 @@ class loop_class : public Expression_class {
 protected:
    Expression pred;
    Expression body;
+   String type:
 public:
    loop_class(Expression a1, Expression a2) {
       pred = a1;
       body = a2;
+      type = "loop";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -425,10 +438,12 @@ class typcase_class : public Expression_class {
 protected:
    Expression expr;
    Cases cases;
+   String type;
 public:
    typcase_class(Expression a1, Cases a2) {
       expr = a1;
       cases = a2;
+      type = "typcase";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -446,12 +461,15 @@ public:
 class block_class : public Expression_class {
 protected:
    Expressions body;
+   String type;
 public:
    block_class(Expressions a1) {
       body = a1;
+      type = "block";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
+   Expressions getExpressions(){ return body;}
 
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
@@ -469,12 +487,14 @@ protected:
    Symbol type_decl;
    Expression init;
    Expression body;
+   String type;
 public:
    let_class(Symbol a1, Symbol a2, Expression a3, Expression a4) {
       identifier = a1;
       type_decl = a2;
       init = a3;
       body = a4;
+      type = "let";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -493,10 +513,12 @@ class plus_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
+   String type;
 public:
    plus_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      type = "plus";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -515,10 +537,12 @@ class sub_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
+   String type;
 public:
    sub_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      type = "sub";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -537,10 +561,12 @@ class mul_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
+   String type;
 public:
    mul_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      type = "mul";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -559,10 +585,12 @@ class divide_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
+   String type;
 public:
    divide_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      type = "divide";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -580,6 +608,7 @@ public:
 class neg_class : public Expression_class {
 protected:
    Expression e1;
+   String type;
 public:
    neg_class(Expression a1) {
       e1 = a1;
