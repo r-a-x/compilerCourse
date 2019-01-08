@@ -11,12 +11,23 @@
 
 #include "tree.h"
 #include "cool-tree.handcode.h"
+#include <stdlib.h>
 
+#include <stdio.h>
+
+#include <symtab.h>
+
+#include<string>
 // define the class for phylum
 // define simple phylum - Program
 typedef class Program_class *Program;
 class method_class;
 class attr_class;
+template <class SYM, class DAT>
+class SymbolTable;
+class block_class;
+
+// SymbolTable::SymbolTable(): tbl(NULL) { }
 
 class Program_class : public tree_node {
 public:
@@ -56,7 +67,7 @@ public:
    virtual Feature copy_Feature() = 0;
    bool isMethod(){ return method;}
    // virtual Symbol getReturnType() = 0;
-   virtual getExpression() = 0;
+   virtual Expression getExpression() = 0;
 #ifdef Feature_EXTRAS
    Feature_EXTRAS
 #endif
@@ -84,8 +95,10 @@ typedef class Expression_class *Expression;
 
 class Expression_class : public tree_node {
 public:
+   std::string types;
    tree_node *copy()		 { return copy_Expression(); }
    virtual Expression copy_Expression() = 0;
+   Symbol getType() { return type;}
 
 #ifdef Expression_EXTRAS
    Expression_EXTRAS
@@ -159,6 +172,11 @@ public:
    bool isMethodArgValid(method_class* method);
    bool methodArgUnique(method_class* method);
    bool checkMethod(method_class* method);
+   template <class SYM, class DAT>
+   void setTypeOfMethod(method_class* method, SymbolTable<SYM,DAT>* symbolTable);
+   template<class SYM, class DAT>
+   Symbol setTypeInBlock(block_class* body, SymbolTable<SYM,DAT> *symbolTable);
+
    // void checkParentExist(ClassTable classtable);
 
 #ifdef Program_SHARED_EXTRAS
@@ -310,12 +328,12 @@ class assign_class : public Expression_class {
 protected:
    Symbol name;
    Expression expr;
-   String type;
+   std::string types;
 public:
    assign_class(Symbol a1, Expression a2) {
       name = a1;
       expr = a2;
-      type = "assign";
+      types = "assign";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -336,14 +354,14 @@ protected:
    Symbol type_name;
    Symbol name;
    Expressions actual;
-   String type:
+   std::string types;
 public:
    static_dispatch_class(Expression a1, Symbol a2, Symbol a3, Expressions a4) {
       expr = a1;
       type_name = a2;
       name = a3;
       actual = a4;
-      type = "static_dispatch";
+      types = "static_dispatch";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -363,13 +381,13 @@ protected:
    Expression expr;
    Symbol name;
    Expressions actual;
-   String type:
+   std::string types;
 public:
    dispatch_class(Expression a1, Symbol a2, Expressions a3) {
       expr = a1;
       name = a2;
       actual = a3;
-      type = "dispatch";
+      types = "dispatch";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -389,13 +407,13 @@ protected:
    Expression pred;
    Expression then_exp;
    Expression else_exp;
-   String type;
+   std::string types;
 public:
    cond_class(Expression a1, Expression a2, Expression a3) {
       pred = a1;
       then_exp = a2;
       else_exp = a3;
-      type = "cond";
+      types = "cond";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -414,12 +432,12 @@ class loop_class : public Expression_class {
 protected:
    Expression pred;
    Expression body;
-   String type:
+   std::string types;
 public:
    loop_class(Expression a1, Expression a2) {
       pred = a1;
       body = a2;
-      type = "loop";
+      types = "loop";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -438,12 +456,12 @@ class typcase_class : public Expression_class {
 protected:
    Expression expr;
    Cases cases;
-   String type;
+   std::string types;
 public:
    typcase_class(Expression a1, Cases a2) {
       expr = a1;
       cases = a2;
-      type = "typcase";
+      types = "typcase";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -461,11 +479,11 @@ public:
 class block_class : public Expression_class {
 protected:
    Expressions body;
-   String type;
+   std::string types;
 public:
    block_class(Expressions a1) {
       body = a1;
-      type = "block";
+      types = "block";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -487,14 +505,14 @@ protected:
    Symbol type_decl;
    Expression init;
    Expression body;
-   String type;
+   std::string types;
 public:
    let_class(Symbol a1, Symbol a2, Expression a3, Expression a4) {
       identifier = a1;
       type_decl = a2;
       init = a3;
       body = a4;
-      type = "let";
+      types = "let";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -513,15 +531,21 @@ class plus_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
-   String type;
+   std::string types;
 public:
    plus_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
-      type = "plus";
+      types = "plus";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
+   Expression getE1(){
+      return e1;
+   }
+   Expression getE2(){
+     return e2;
+   }
 
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
@@ -537,12 +561,12 @@ class sub_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
-   String type;
+   std::string types;
 public:
    sub_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
-      type = "sub";
+      types = "sub";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -561,12 +585,12 @@ class mul_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
-   String type;
+   std::string types;
 public:
    mul_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
-      type = "mul";
+      types = "mul";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -585,12 +609,12 @@ class divide_class : public Expression_class {
 protected:
    Expression e1;
    Expression e2;
-   String type;
+   std::string types;
 public:
    divide_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
-      type = "divide";
+      types = "divide";
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -608,7 +632,7 @@ public:
 class neg_class : public Expression_class {
 protected:
    Expression e1;
-   String type;
+   std::string types;
 public:
    neg_class(Expression a1) {
       e1 = a1;
@@ -751,7 +775,7 @@ public:
 };
 
 
-// define constructor - string_const
+// define constructor - std::string_const
 class string_const_class : public Expression_class {
 protected:
    Symbol token;

@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <symtab.h>
 #include "semant.h"
 #include "utilities.h"
 
@@ -361,30 +362,59 @@ bool program_class::methodReturnTypeValid(method_class* method){
 
 // Can there be multilpe body in the body, lets see
 // Symbol will be the return type of the object and I have to make sure that certain values
-Symbol program_class::setTypeInLet(){
+// Symbol program_class::setTypeInLet(){
+//
+// }
+//
+// Symbol program_class::setTypeForExpression(Expression_class* expression, SymbolTable *symbolTable){
+//   symbolTable->enterscope();
+//
+//   symbolTable->exitscope();
+// }
 
-}
+// Symbol program_class::setTypeInCase(){
+//
+// }
 
-Symbol program_class::setTypeInCase(){
+// This depends upon the
+// Symbol program_class::setTypeForPlus(plus_class *plus, SymbolTable *symbolTable){
+//   symbolTable->enterscope();
+//   Symbol e1 = setTypeForExpression(plus->getE1(),symbolTable);
+//   Symbol e2 = setTypeForExpression(plus->getE2(),symbolTable);
+//   if ( e1 != Int ){
+//     cout << "raise an exception about the E1";
+//   }
+//   if ( e2 != Int ){
+//     cout << "raise an exception about the E2";
+//   }
+//   symbolTable->exitscope();
+//   return Int;
+// }
 
-}
+// Symbol program_class::setTypeForOperators(Expression_class* expression, SymbolTable *symbolTable){
+//   switch(expression->getType()){
+//     case "plus":
+//       return setTypeForPlus((plus_class *) expression, symbolTable);
+//     case "minus":
+//       return setTypeForMinus((minus_class*) expression, symbolTable);
+//   }
+// }
 
-// Symbol program_class::
-
-Symbol program_class::setTypeInBlock(body_class* body, SymbolTable *symbolTable){
+template <class SYM, class DAT>
+Symbol program_class::setTypeInBlock(block_class* body, SymbolTable<SYM,DAT> *symbolTable){
   symbolTable->enterscope();
   Symbol returnValue;
-  Expressions expressions = body.getExpressions();
+  Expressions expressions = body->getExpressions();
   for( int i = expressions->first(); expressions->more(i); expressions->next(i) ){
-    Expression_class * expression = (Expression_class*) expressions->nth(i);
-
+    Expression_class *expression = (Expression_class*) expressions->nth(i);
   }
-
   symbolTable->exitscope();
-  return
+  return returnValue;
 }
 
-void program_class::setTypeOfMethod(method_class* method,SymbolTable *symbolTable){
+template <class SYM, class DAT>
+
+void program_class::setTypeOfMethod(method_class* method,SymbolTable<SYM,DAT> *symbolTable){
 // SymbolTable<char *,int> *map = new SymbolTable<char *, int>();
   symbolTable->enterscope();
 
@@ -396,11 +426,8 @@ void program_class::setTypeOfMethod(method_class* method,SymbolTable *symbolTabl
     }
     symbolTable->addid(formal->GetName(), formal->GetTypeDecl());
   }
-
 // set the method type in the expression of the
-  Expression expression = method.getExpression();
-
-
+  Expression expression = method->getExpression();
   symbolTable->exitscope();
 }
 
@@ -443,16 +470,20 @@ bool program_class::checkMethod(method_class* method){
   cout << methodArgUnique(method) <<endl;
   // checkMethodSignatureValid(method);
   // checkMethodExprValid(method);
+  // template<class SYM, class DAT>
+  SymbolTable<Symbol,Symbol>* symbolTable = new SymbolTable<Symbol,Symbol>();
+  setTypeOfMethod(method, symbolTable);
   cout << isMethodArgValid(method) <<endl;
+  return true;
 }
 
 bool program_class::checkAttr(attr_class* attr){
   return false;
 }
 
-void program_class::storeDeclarations(){
-
-}
+// void program_class::storeDeclarations(){
+//
+// }
 
 bool program_class::checkFeature(){
   for( int i = classes->first(); classes->more(i); i = classes->next(i) ){
@@ -470,6 +501,7 @@ bool program_class::checkFeature(){
       }
     }
   }
+  return true;
 }
 
 void program_class::semant()
