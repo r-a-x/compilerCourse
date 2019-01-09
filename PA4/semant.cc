@@ -13,6 +13,18 @@
 extern int semant_debug;
 extern char *curr_filename;
 
+// #define COND 9
+// #define LOOP 10
+// #define TYPCASE 11
+// #define BLOCK 12
+// #define LET 13
+// #define PLUS 14
+// #define SUB 15
+// #define MUL 16
+// #define DIVIDE 17
+// #define ASSIGN 18
+// #define STATIC_DISPATCH 19
+// #define DISPATCH 20
 // typedef class_ class_
 
 //////////////////////////////////////////////////////////////////////
@@ -366,11 +378,23 @@ bool program_class::methodReturnTypeValid(method_class* method){
 //
 // }
 //
-// Symbol program_class::setTypeForExpression(Expression_class* expression, SymbolTable *symbolTable){
-//   symbolTable->enterscope();
-//
-//   symbolTable->exitscope();
-// }
+
+// write the code for returning the type of the expression
+template<class SYM, class DAT>
+Symbol program_class::setTypeForExpression(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable){
+  symbolTable->enterscope();
+  // std:: string type = expression->getType();
+  cout << "Set type for expression" << endl;
+  Symbol returnType;
+  switch( expression->getType()){
+    case BLOCK_TYPE:
+      returnType =  setTypeInBlock((block_class*)expression, symbolTable);
+      break;
+  }
+
+  symbolTable->exitscope();
+  return returnType;
+}
 
 // Symbol program_class::setTypeInCase(){
 //
@@ -400,35 +424,53 @@ bool program_class::methodReturnTypeValid(method_class* method){
 //   }
 // }
 
+// This method wil be called with the info about the
 template <class SYM, class DAT>
 Symbol program_class::setTypeInBlock(block_class* body, SymbolTable<SYM,DAT> *symbolTable){
   symbolTable->enterscope();
   Symbol returnValue;
   Expressions expressions = body->getExpressions();
+  cout << "Block Class "<<endl;
   for( int i = expressions->first(); expressions->more(i); expressions->next(i) ){
     Expression_class *expression = (Expression_class*) expressions->nth(i);
+    returnValue = setTypeForExpression(expression, symbolTable);
+    cout << " Looping over the expression " <<endl;
   }
   symbolTable->exitscope();
   return returnValue;
 }
 
 template <class SYM, class DAT>
-
-void program_class::setTypeOfMethod(method_class* method,SymbolTable<SYM,DAT> *symbolTable){
+Symbol program_class::setTypeOfMethod(method_class* method,SymbolTable<SYM,DAT> *symbolTable){
 // SymbolTable<char *,int> *map = new SymbolTable<char *, int>();
+  cout << "In the set Type Of Method" << endl;
+  //
   symbolTable->enterscope();
 
   Formals formals = method->getFormals();
   for ( int i = formals->first(); formals->more(i); i = formals->next(i) ){
     formal_class* formal = (formal_class*)formals->nth(i);
+    cout << "Looping over the the Formals   " << formal->GetName() << endl;
     if( symbolTable->probe(formal->GetName()) != NULL ){
       cout << "There is an error, the value of the formal parameter is already defined" <<endl;
     }
-    symbolTable->addid(formal->GetName(), formal->GetTypeDecl());
+    Symbol type = formal->GetTypeDecl();
+    if ( checkTypeValid(type) )
+      symbolTable->addid(formal->GetName(), &type);
+    else{
+      cout << "There is an error in the method argument type " <<endl;
+    }
   }
+
+// At this point symbol table will have the full info about the ar
 // set the method type in the expression of the
+
   Expression expression = method->getExpression();
+
+  setTypeForExpression(expression, symbolTable);
+
   symbolTable->exitscope();
+  return NULL;
 }
 
 bool program_class::isMethodArgValid(method_class* method){
@@ -466,8 +508,8 @@ bool program_class::checkMethodExprValid(Feature method){
 
 
 bool program_class::checkMethod(method_class* method){
-  cout << methodReturnTypeValid(method) <<endl;
-  cout << methodArgUnique(method) <<endl;
+  // cout << methodReturnTypeValid(method) <<endl;
+  // cout << methodArgUnique(method) <<endl;
   // checkMethodSignatureValid(method);
   // checkMethodExprValid(method);
   // template<class SYM, class DAT>
@@ -475,6 +517,10 @@ bool program_class::checkMethod(method_class* method){
   setTypeOfMethod(method, symbolTable);
   cout << isMethodArgValid(method) <<endl;
   return true;
+}
+//
+bool program_class::checkTypeValid(Symbol type){
+  return tree_classes.find(type) != tree_classes.end();
 }
 
 bool program_class::checkAttr(attr_class* attr){
@@ -488,12 +534,14 @@ bool program_class::checkAttr(attr_class* attr){
 bool program_class::checkFeature(){
   for( int i = classes->first(); classes->more(i); i = classes->next(i) ){
 
-    if (semant_debug)
+    // if (semant_debug)
       cout << "looping over the class" << classes->nth(i)->GetName() << endl;
 
     Features features = classes->nth(i)->GetFeatures();
     for( int i = features->first(); features->more(i); i = features->next(i) ){
       Feature feature = features->nth(i);
+      cout << "looping over the feature" << feature->GetName() << endl;
+
       if ( feature->isMethod() ){
         checkMethod((method_class*)feature);
       }else{
