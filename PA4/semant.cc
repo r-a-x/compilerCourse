@@ -385,15 +385,50 @@ Symbol program_class::setTypeForExpression(Expression_class* expression, SymbolT
   symbolTable->enterscope();
   // std:: string type = expression->getType();
   cout << "Set type for expression" << endl;
+  cout << "Printing the expresion " << expression->getType() << endl;
   Symbol returnType;
   switch( expression->getType()){
     case BLOCK_TYPE:
       returnType =  setTypeInBlock((block_class*)expression, symbolTable);
       break;
+    case ASSIGN_TYPE:
+      returnType = setTypeForAssign(expression, symbolTable);
+      break;
+    case OBJECT_TYPE:
+      returnType = setTypeForObject(expression, symbolTable);
   }
 
   symbolTable->exitscope();
   return returnType;
+}
+
+template<class SYM, class DAT>
+Symbol program_class::setTypeForObject(Expression_class*  expression, SymbolTable<SYM,DAT> *symbolTable){
+  cout << "In the Object class " <<endl;
+  object_class* assign = (object_class *)expression;
+  Symbol name = assign->getObjectName();
+  Symbol returnValue;
+  if (symbolTable->lookup(name) == NULL){
+    cout << "Symbol does not exist "<< name <<endl;
+  } else {
+    returnValue = name;
+  }
+  return returnValue;
+}
+
+template<class SYM, class DAT>
+Symbol program_class::setTypeForAssign(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable){
+  // symbol table needs to know about the value and it needs to be updated into it
+  cout << "In the assign class " <<endl;
+  assign_class* assign = (assign_class *)expression;
+  Symbol lhs = assign->getLHS();
+  Symbol returnValue;
+  // if (symbolTable->lookup(lhs) == NULL){
+    // cout << "Symbol does not exist "<< lhs <<endl;
+  // } else {
+    returnValue = setTypeForExpression(assign->getExpression(),symbolTable);
+  // }
+  return returnValue;
 }
 
 // Symbol program_class::setTypeInCase(){
@@ -431,10 +466,10 @@ Symbol program_class::setTypeInBlock(block_class* body, SymbolTable<SYM,DAT> *sy
   Symbol returnValue;
   Expressions expressions = body->getExpressions();
   cout << "Block Class "<<endl;
-  for( int i = expressions->first(); expressions->more(i); expressions->next(i) ){
+  for( int i = expressions->first(); expressions->more(i) ; i = expressions->next(i) ){
     Expression_class *expression = (Expression_class*) expressions->nth(i);
+    // cout << "Printing the expresion " << expression->getType() << endl;
     returnValue = setTypeForExpression(expression, symbolTable);
-    cout << " Looping over the expression " <<endl;
   }
   symbolTable->exitscope();
   return returnValue;

@@ -41,6 +41,19 @@ class block_class;
 #define ASSIGN_TYPE 18
 #define STATIC_DISPATCH_TYPE 19
 #define DISPATCH_TYPE 20
+#define NEG_TYPE 21
+#define LT_TYPE 22
+#define COMP_TYPE 23
+#define LOOP_TPE 24
+#define INT_CONST_TYPE 25
+#define BOOL_CONST_TYPE 26
+#define STRING_CONST_TYPE 27
+#define NEW_TYPE 28
+#define ISVOID_TYPE 29
+#define NO_EXPR_TYPE 30
+#define OBJECT_TYPE 31
+#define LEQ_CLASS_TYPE 32
+#define EQ_CLASS_TYPE 33
 // typedef class_ class_
 
 class Program_class : public tree_node {
@@ -195,6 +208,10 @@ public:
    Symbol setTypeInBlock(block_class* body, SymbolTable<SYM,DAT> *symbolTable);
    template<class SYM, class DAT>
    Symbol setTypeForExpression(Expression_class* expression, SymbolTable<SYM, DAT> *symbolTable);
+   template<class SYM, class DAT>
+   Symbol setTypeForAssign(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable);
+   template<class SYM, class DAT>
+   Symbol setTypeForObject(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable);
    // void checkParentExist(ClassTable classtable);
    // bool isSymbolTypeValid(Symbol type);
 
@@ -348,7 +365,7 @@ class assign_class : public Expression_class {
 protected:
    Symbol name;
    Expression expr;
-
+   // ErrorMsg, type, else etc
 public:
    assign_class(Symbol a1, Expression a2) {
       name = a1;
@@ -357,6 +374,8 @@ public:
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
+   Symbol getLHS(){ return name;}
+   Expression getExpression(){ return expr;}
 
 #ifdef Expression_SHARED_EXTRAS
    Expression_SHARED_EXTRAS
@@ -653,6 +672,7 @@ protected:
 public:
    neg_class(Expression a1) {
       e1 = a1;
+      types = NEG_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -675,6 +695,7 @@ public:
    lt_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      types = LT_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -697,6 +718,7 @@ public:
    eq_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      types = EQ_CLASS_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -719,6 +741,7 @@ public:
    leq_class(Expression a1, Expression a2) {
       e1 = a1;
       e2 = a2;
+      types = LEQ_CLASS_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -739,6 +762,7 @@ protected:
 public:
    comp_class(Expression a1) {
       e1 = a1;
+      types = COMP_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -759,6 +783,7 @@ protected:
 public:
    int_const_class(Symbol a1) {
       token = a1;
+      types = INT_CONST_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -779,6 +804,7 @@ protected:
 public:
    bool_const_class(Boolean a1) {
       val = a1;
+      types = BOOL_CONST_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -799,6 +825,7 @@ protected:
 public:
    string_const_class(Symbol a1) {
       token = a1;
+      types = STRING_CONST_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -819,6 +846,7 @@ protected:
 public:
    new__class(Symbol a1) {
       type_name = a1;
+      types =  NEW_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -839,6 +867,7 @@ protected:
 public:
    isvoid_class(Expression a1) {
       e1 = a1;
+      types = ISVOID_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -857,6 +886,7 @@ class no_expr_class : public Expression_class {
 protected:
 public:
    no_expr_class() {
+     types = NO_EXPR_TYPE;
    }
    Expression copy_Expression();
    void dump(ostream& stream, int n);
@@ -877,7 +907,9 @@ protected:
 public:
    object_class(Symbol a1) {
       name = a1;
+      types = OBJECT_TYPE;
    }
+   Symbol getObjectName(){ return name;}
    Expression copy_Expression();
    void dump(ostream& stream, int n);
 
