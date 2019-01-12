@@ -541,16 +541,21 @@ bool program_class::checkMethodExprValid(Feature method){
   return false;
 }
 
-
-bool program_class::checkMethod(method_class* method){
+template <class SYM, class DAT>
+bool program_class::checkMethod(method_class* method, SymbolTable<SYM,DAT> *symbolTable){
+  symbolTable->enterscope();
   // cout << methodReturnTypeValid(method) <<endl;
   // cout << methodArgUnique(method) <<endl;
   // checkMethodSignatureValid(method);
   // checkMethodExprValid(method);
   // template<class SYM, class DAT>
-  SymbolTable<Symbol,Symbol>* symbolTable = new SymbolTable<Symbol,Symbol>();
+  // The problem was the self does not exist in something
+  // There should not be a symbol table in the checkMethod. It has to be
+  // SymbolTable<Symbol,Symbol>* symbolTable = new SymbolTable<Symbol,Symbol>();
   setTypeOfMethod(method, symbolTable);
   cout << isMethodArgValid(method) <<endl;
+
+  symbolTable->exitscope();
   return true;
 }
 //
@@ -571,18 +576,22 @@ bool program_class::checkFeature(){
 
     // if (semant_debug)
       cout << "looping over the class" << classes->nth(i)->GetName() << endl;
-
     Features features = classes->nth(i)->GetFeatures();
+    SymbolTable<Symbol,Symbol>* symbolTable = new SymbolTable<Symbol,Symbol>();
+    symbolTable->enterscope();
+    Symbol className = classes->nth(i)->GetName();
+    symbolTable->addid(self,&className);
     for( int i = features->first(); features->more(i); i = features->next(i) ){
       Feature feature = features->nth(i);
       cout << "looping over the feature" << feature->GetName() << endl;
 
       if ( feature->isMethod() ){
-        checkMethod((method_class*)feature);
+        checkMethod((method_class*)feature, symbolTable);
       }else{
         checkAttr((attr_class*)feature);
       }
     }
+    symbolTable->exitscope();
   }
   return true;
 }

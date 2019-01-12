@@ -200,7 +200,9 @@ public:
    bool checkFeature();
    bool isMethodArgValid(method_class* method);
    bool methodArgUnique(method_class* method);
-   bool checkMethod(method_class* method);
+   // Symbol className = class->GetName();
+   template<class SYM, class DAT>
+   bool checkMethod(method_class* method, SymbolTable<SYM, DAT>* symbolTable);
    bool checkTypeValid(Symbol type);
    template <class SYM, class DAT>
    Symbol setTypeOfMethod(method_class* method, SymbolTable<SYM,DAT>* symbolTable);
