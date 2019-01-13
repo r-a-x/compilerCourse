@@ -396,6 +396,10 @@ Symbol program_class::setTypeForExpression(Expression_class* expression, SymbolT
       break;
     case OBJECT_TYPE:
       returnType = setTypeForObject(expression, symbolTable);
+      break;
+    case PLUS_TYPE:
+      returnType = setTypeForPlus(expression, symbolTable);
+      break;
   }
 
   symbolTable->exitscope();
@@ -411,8 +415,11 @@ Symbol program_class::setTypeForObject(Expression_class*  expression, SymbolTabl
   if (symbolTable->lookup(name) == NULL){
     cout << "Symbol does not exist "<< name <<endl;
   } else {
-    returnValue = name;
+    returnValue = *symbolTable->lookup(name);
+
   }
+  cout << "The return value " <<  name <<" that is going to be returned is "  << returnValue << endl;
+  // symbolTable->dump();
   return returnValue;
 }
 
@@ -436,19 +443,25 @@ Symbol program_class::setTypeForAssign(Expression_class* expression, SymbolTable
 // }
 
 // This depends upon the
-// Symbol program_class::setTypeForPlus(plus_class *plus, SymbolTable *symbolTable){
-//   symbolTable->enterscope();
-//   Symbol e1 = setTypeForExpression(plus->getE1(),symbolTable);
-//   Symbol e2 = setTypeForExpression(plus->getE2(),symbolTable);
-//   if ( e1 != Int ){
-//     cout << "raise an exception about the E1";
-//   }
-//   if ( e2 != Int ){
-//     cout << "raise an exception about the E2";
-//   }
-//   symbolTable->exitscope();
-//   return Int;
-// }
+template<class SYM, class DAT>
+Symbol program_class::setTypeForPlus(Expression_class *exp, SymbolTable<SYM,DAT> *symbolTable){
+  cout << "In the Set Type For Plus Method" <<endl;
+  symbolTable->enterscope();
+  plus_class *plus = (plus_class*) exp;
+  Symbol e1 = setTypeForExpression(plus->getE1(),symbolTable);
+  Symbol e2 = setTypeForExpression(plus->getE2(),symbolTable);
+  // symbolTable->dump();
+  symbolTable->lookup
+  cout << "Printing the type of Symbol " << plus->getE1()<< " : " << e1 << " and " << plus->getE2()<<" : "<< e2 <<endl;
+  if ( e1 != Int ){
+    cout << "raise an exception about the E1";
+  }
+  if ( e2 != Int ){
+    cout << "raise an exception about the E2";
+  }
+  symbolTable->exitscope();
+  return Int;
+}
 
 // Symbol program_class::setTypeForOperators(Expression_class* expression, SymbolTable *symbolTable){
 //   switch(expression->getType()){
@@ -485,19 +498,21 @@ Symbol program_class::setTypeOfMethod(method_class* method,SymbolTable<SYM,DAT> 
   Formals formals = method->getFormals();
   for ( int i = formals->first(); formals->more(i); i = formals->next(i) ){
     formal_class* formal = (formal_class*)formals->nth(i);
-    cout << "Looping over the the Formals   " << formal->GetName() << endl;
+    cout << "Looping over the Formals   " << formal->GetName() << endl;
     if( symbolTable->probe(formal->GetName()) != NULL ){
       cout << "There is an error, the value of the formal parameter is already defined" <<endl;
     }
     Symbol type = formal->GetTypeDecl();
-    if ( checkTypeValid(type) )
+    if ( checkTypeValid(type) ){
       symbolTable->addid(formal->GetName(), &type);
+      cout << "Storing the method arguement type" << formal->GetName() << " and the type is " << *symbolTable->lookup(formal->GetName()) <<endl;
+    }
     else{
       cout << "There is an error in the method argument type " <<endl;
     }
   }
 
-// At this point symbol table will have the full info about the ar
+// At this point symbol table will have the full info about the argumenmts
 // set the method type in the expression of the
 
   Expression expression = method->getExpression();
@@ -588,9 +603,11 @@ bool program_class::checkFeature(){
       if ( feature->isMethod() ){
         checkMethod((method_class*)feature, symbolTable);
       }else{
+        // add attriutes here without the use of the scope
         checkAttr((attr_class*)feature);
       }
     }
+    cout <<"The type of the self is " << *symbolTable->lookup(self) <<endl;
     symbolTable->exitscope();
   }
   return true;

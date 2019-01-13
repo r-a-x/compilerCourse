@@ -214,6 +214,8 @@ public:
    Symbol setTypeForAssign(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable);
    template<class SYM, class DAT>
    Symbol setTypeForObject(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable);
+   template<class SYM, class DAT>
+   Symbol setTypeForPlus(Expression_class* expression, SymbolTable<SYM,DAT> *symbolTable);
    // void checkParentExist(ClassTable classtable);
    // bool isSymbolTypeValid(Symbol type);
 
